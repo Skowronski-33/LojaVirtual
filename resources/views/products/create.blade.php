@@ -9,6 +9,24 @@
     <label>Preço:</label><br>
     <input name="price" type="number" /><br>
     <label>Tipo:</label><br>
-    <input name="type_id" type="number" /><br>
+    <select name="type_id">
+        <option selected>Selecione um tipo</option>
+        @foreach ($types as $type)
+        <option value="{{ $type->id }}">
+            {{ $type->name }}
+        </option>
+        @endforeach
+    </select>
+    <br>
     <input type="submit" value="Salvar" />
-</form>
+    <a href="{{ url('products') }}">Voltar</a>
+
+        @if ($errors->any())
+        <ul>
+            @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+        @endif
+        
+    </form>

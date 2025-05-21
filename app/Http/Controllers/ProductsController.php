@@ -3,30 +3,48 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Type;
 use Illuminate\Http\Request;
+
+use function PHPSTORM_META\type;
 
 class ProductsController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('products.index', ['products' => Product::all()]);
+        $filter = $request->input('search');
+        if ($filter) {
+            $products = Product::where('name', 'like', "%$filter%")->get();
+
+        } else {
+            $products = Product::with('type')->orderBy('name')->get();
+        
+        }
+        return view('products.index', ['products' => $products, 'filter' => $filter]);
     }
 
     public function create()
     {
-        return view('products.create');
+        return view('products.create', ['types'=>Type::all()]);
     }
 
     public function store(Request $request)
     {
-        Product::create([
+        $request->validate([
+            'name' => 'required|min:3|max:50',
+            'description' => 'required|min:3|max:50',
+            'quantity' => 'required|integer',
+            'price' => 'required|numeric',
+            'type_id' => 'required|integer'
+        ]);
+            Product::create([
             'name' => $request->name,
             'description' => $request->description,
             'quantity' => $request->quantity,
             'price' => $request->price,
             'type_id' => $request->type_id
         ]);
-        return redirect('/products');
+        return redirect('/products') ->with('success', 'Produto cadastrado com sucesso!');
     }
 
     public function edit($id)
@@ -34,7 +52,7 @@ class ProductsController extends Controller
         //find é o método que faz select * from products where id= ?
         $product = Product::find($id);
         //retornamos a view passando a TUPLA de produto consultado
-        return view('products.edit', ['product' => $product]);
+        return view('products.edit', ['product' => $product, 'types'=>Type::all()]);
     }
     
     public function update(Request $request)
@@ -48,12 +66,12 @@ class ProductsController extends Controller
             'price' => $request->price,
             'type_id' => $request->type_id
         ]);
-        return redirect('/products');
+        return redirect('/products')->with('success', 'Produto atualizado com sucesso!');
     }
 
     public function destroy($id) {
         $product = Product::find($id);
         $product->delete();
-        return redirect('/products');
+        return redirect('/products')->with('success', 'Produto excluído com sucesso!');
     }
 }
